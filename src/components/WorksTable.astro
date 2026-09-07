@@ -1,0 +1,47 @@
+---
+// WORKS 一覧の中身（種別タブ＋表）。
+// /works/（全件）と /works/[type]/（種別別）の両方から使う。
+const { works, types, activeType } = Astro.props;
+
+const base = import.meta.env.BASE_URL;
+const path = (...parts) => [base, ...parts, ''].join('/').replace(/\/{2,}/g, '/');
+const allHref = path('works');
+const typeHref = (t) => path('works', t);
+---
+<div class="tabs" role="tablist">
+  {activeType === undefined
+    ? <span class="is-current" aria-current="page">すべて</span>
+    : <a href={allHref}>すべて</a>}
+  {types.map((t) => (
+    activeType === t
+      ? <span class="is-current" aria-current="page">{t}</span>
+      : <a href={typeHref(t)}>{t}</a>
+  ))}
+</div>
+
+{works.length > 0 ? (
+  <div class="prose">
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Type</th>
+          <th>Title</th>
+          <th>Link</th>
+        </tr>
+      </thead>
+      <tbody>
+        {works.map((w) => (
+          <tr>
+            <td>{w.year}</td>
+            <td>{w.type}</td>
+            <td>{w.title}</td>
+            <td><a href={w.url} target="_blank" rel="noopener">↗</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+) : (
+  <p class="desc">この分類の成果物はまだありません。</p>
+)}

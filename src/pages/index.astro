@@ -1,0 +1,40 @@
+---
+import Base from '../layouts/Base.astro';
+import { getPublishedPosts } from '../lib/posts.mjs';
+import { SITE_TITLE } from '../lib/site.mjs';
+
+const base = import.meta.env.BASE_URL;
+const path = (...parts) => [base, ...parts, ''].join('/').replace(/\/{2,}/g, '/');
+const writingHref = path('writing');
+const genreHref = (g) => path('writing', g);
+
+const posts = await getPublishedPosts();
+const latest = posts.slice(0, 3);
+---
+<Base title={SITE_TITLE} description="作ったものと考えたことを置いている個人サイト。">
+  <div class="page">
+    <main>
+      <section class="top-latest">
+        <p class="eyebrow">Latest Writing</p>
+        {latest.length > 0 ? (
+          <ul class="index-list">
+            {latest.map((p) => (
+              <li>
+                <a href={p.href}>{p.title}</a>
+                <div class="meta">{p.dateLabel} ・ <a href={genreHref(p.genre)}>{p.genre}</a></div>
+                <p class="desc" set:html={p.standfirst} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="desc">まだ記事がありません。</p>
+        )}
+        {posts.length > 0 && (
+          <p class="top-more">
+            <a href={writingHref}>NOTES — 全{posts.length}件を新しい順に見る →</a>
+          </p>
+        )}
+      </section>
+    </main>
+  </div>
+</Base>

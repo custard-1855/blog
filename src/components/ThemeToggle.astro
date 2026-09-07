@@ -1,0 +1,23 @@
+---
+// ライト/ダークの手動切り替えボタン。
+// 選択は localStorage に保存し、<head> 側のインラインスクリプト
+// （src/layouts/Base.astro）が次回訪問時に描画前へ反映する。
+---
+<button type="button" class="theme-toggle" aria-label="ライト/ダークを切り替える">THEME</button>
+<script is:inline>
+(function () {
+  var btn = document.currentScript.previousElementSibling;
+
+  function effectiveTheme() {
+    var attr = document.documentElement.getAttribute('data-theme');
+    if (attr === 'light' || attr === 'dark') return attr;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  btn.addEventListener('click', function () {
+    var next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+  });
+})();
+</script>

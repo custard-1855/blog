@@ -1,0 +1,17 @@
+---
+import { getCollection, render } from 'astro:content';
+import Post from '../../layouts/Post.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+// toc はプラグインが frontmatter に書き出したもの（src/plugins/rehype-heading-numbers.mjs）
+const { Content, remarkPluginFrontmatter } = await render(entry);
+---
+
+<Post entry={entry} toc={remarkPluginFrontmatter.toc ?? []}>
+  <Content />
+</Post>

@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import WorksTable from '../components/WorksTable.astro';
+import { getWorks, getTypes } from '../lib/works.mjs';
+
+const works = await getWorks();
+const types = getTypes(works);
+---
+<Base title="成果物" description="作ったもの・書いたもの・発表したものの一覧。">
+  <div class="page">
+    <main>
+      <header class="masthead">
+        <p class="eyebrow">Works</p>
+        <h1>成果物</h1>
+      </header>
+      <WorksTable works={works} types={types} />
+    </main>
+  </div>
+</Base>

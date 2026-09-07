@@ -1,0 +1,16 @@
+[
+  {
+    "id": "sample-oss",
+    "year": 2026,
+    "type": "OSS",
+    "title": "サンプル項目 — 実際の成果物に置き換える",
+    "url": "https://github.com/USERNAME/REPO"
+  },
+  {
+    "id": "sample-writing",
+    "year": 2025,
+    "type": "執筆",
+    "title": "サンプル項目 — 発表・執筆・研究など好きな種別を入れてよい",
+    "url": "https://example.com"
+  }
+]
