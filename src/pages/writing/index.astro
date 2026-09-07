@@ -1,0 +1,19 @@
+---
+import Base from '../../layouts/Base.astro';
+import WritingList from '../../components/WritingList.astro';
+import { getPublishedPosts, getGenres } from '../../lib/posts.mjs';
+
+const posts = await getPublishedPosts();
+const genres = getGenres(posts);
+---
+<Base title="記事一覧" description="書いたものを新しい順に並べた一覧。">
+  <div class="page">
+    <main>
+      <header class="masthead">
+        <p class="eyebrow">Writing</p>
+        <h1>記事一覧</h1>
+      </header>
+      <WritingList posts={posts} genres={genres} />
+    </main>
+  </div>
+</Base>

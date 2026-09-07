@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro';
+import WritingList from '../../components/WritingList.astro';
+import { getPublishedPosts, getGenres } from '../../lib/posts.mjs';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  const genres = getGenres(posts);
+  // ジャンルは posts.genre の実データから出すので、
+  // content.config.ts に新しいジャンルを増やしても、このファイルは直さなくてよい。
+  return genres.map((genre) => ({ params: { genre }, props: { genre } }));
+}
+
+const { genre } = Astro.props;
+const allPosts = await getPublishedPosts();
+const genres = getGenres(allPosts);
+const posts = allPosts.filter((p) => p.genre === genre);
+---
+<Base title={`${genre} — 記事一覧`} description={`「${genre}」に分類した記事の一覧。`}>
+  <div class="page">
+    <main>
+      <header class="masthead">
+        <p class="eyebrow">Writing</p>
+        <h1>{genre}</h1>
+      </header>
+      <WritingList posts={posts} genres={genres} activeGenre={genre} />
+    </main>
+  </div>
+</Base>

@@ -1,0 +1,59 @@
+---
+import '../styles/main.css';
+import SiteNav from '../components/SiteNav.astro';
+import { SITE_TITLE } from '../lib/site.mjs';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const topHref = [base, ''].join('/').replace(/\/{2,}/g, '/');
+// astro build ではルート(index)ページだけ Astro.url.pathname の末尾スラッシュが
+// 落ちる（/REPO になる）ため、比較の前にそろえる。
+const currentPath = Astro.url.pathname.endsWith('/')
+  ? Astro.url.pathname
+  : `${Astro.url.pathname}/`;
+const isTop = currentPath === topHref;
+---
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{title}</title>
+  {description && <meta name="description" content={description} />}
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Zen+Old+Mincho:wght@400;600&display=swap"
+  />
+
+  <script is:inline>
+    // ライト/ダークの手動選択（ThemeToggle が保存した値）を、
+    // CSS が走る前に反映する。一瞬だけ既定テーマが見えてしまう(FOUC)のを防ぐため、
+    // ここは <head> の中で同期的に実行する。
+    // 未選択（初回訪問）のときは何もせず、prefers-color-scheme に任せる。
+    try {
+      var savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="site-title-bar">
+    <p class="site-title">
+      {isTop
+        ? <span aria-current="page">{SITE_TITLE}</span>
+        : <a href={topHref}>{SITE_TITLE}</a>}
+    </p>
+  </header>
+  <slot />
+  <SiteNav />
+</body>
+</html>

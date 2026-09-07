@@ -1,0 +1,46 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+
+const base = import.meta.env.BASE_URL;
+const path = (...parts) => [base, ...parts, ''].join('/').replace(/\/{2,}/g, '/');
+
+const nav = [
+  { label: 'WRITING', href: path('writing') },
+  { label: 'WORKS', href: path('works') },
+  { label: 'ABOUT', href: path('about') },
+];
+
+const social = [
+  { label: 'GITHUB ↗', href: 'https://github.com/custard-1855', external: true },
+  { label: 'MAIL', href: 'mailto:s1f102201278@iniad.jp', external: false },
+];
+
+// 今いるページに対応するリンクはクリックできないようにする。
+// astro build ではルート(index)ページだけ末尾スラッシュが落ちるため、そろえてから比べる。
+const currentPath = Astro.url.pathname.endsWith('/')
+  ? Astro.url.pathname
+  : `${Astro.url.pathname}/`;
+---
+<footer class="site-nav">
+  <nav class="site-nav-links" aria-label="サイト内ナビゲーション">
+    {nav.map((item) => (
+      item.href === currentPath
+        ? <span class="is-current" aria-current="page">{item.label}</span>
+        : <a href={item.href}>{item.label}</a>
+    ))}
+  </nav>
+  <div class="site-nav-right">
+    <nav class="site-nav-social" aria-label="外部リンク">
+      {social.map((item) => (
+        <a
+          href={item.href}
+          target={item.external ? '_blank' : undefined}
+          rel={item.external ? 'noopener' : undefined}
+        >
+          {item.label}
+        </a>
+      ))}
+    </nav>
+    <ThemeToggle />
+  </div>
+</footer>

@@ -1,0 +1,45 @@
+---
+import Base from '../layouts/Base.astro';
+
+// TODO: すべて実際の内容に書き換える
+const NAME = '氏名のプレースホルダ';
+const BIO = 'ここに自己紹介を書く。仕事で何をしているか、私的に何に関心があるか。';
+const CAREER = [
+  { period: '2024 —', org: '会社名 / 部署名', desc: '担当していることの説明。' },
+  { period: '2021 —', org: '会社名 / 部署名', desc: '担当していることの説明。' },
+  { period: '2019 —', org: '学校名 / 学部・研究室', desc: '学んでいたことの説明。' },
+];
+const SKILLS = ['スキル1', 'スキル2', 'スキル3'];
+---
+<Base title="About" description={BIO}>
+  <div class="page">
+    <main>
+      <header class="masthead">
+        <h1>{NAME}</h1>
+        <p class="standfirst">{BIO}</p>
+      </header>
+
+      <section class="about-section">
+        <p class="eyebrow">Career</p>
+        <ul class="about-career">
+          {CAREER.map((c) => (
+            <li>
+              <span class="about-career-period">{c.period}</span>
+              <div>
+                <p class="about-career-org">{c.org}</p>
+                <p class="desc">{c.desc}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="about-section">
+        <p class="eyebrow">Skills</p>
+        <ul class="about-skills">
+          {SKILLS.map((s) => <li>{s}</li>)}
+        </ul>
+      </section>
+    </main>
+  </div>
+</Base>

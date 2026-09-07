@@ -1,0 +1,62 @@
+---
+import 'katex/dist/katex.min.css';
+import Base from './Base.astro';
+
+const { entry, toc = [] } = Astro.props;
+const { title, genre, standfirst, facts } = entry.data;
+
+const base = import.meta.env.BASE_URL;
+const genreHref = [base, 'writing', genre, ''].join('/').replace(/\/{2,}/g, '/');
+
+// 目次は rehype-heading-numbers が番号と見出しを分けた形で渡してくれる。
+// 章（h2）と節（h3）だけをレールに出す。
+const rail = toc.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+<Base title={title} description={standfirst}>
+  <div class="shell">
+
+    <nav class="rail" aria-label="目次">
+      <ol>
+        {rail.map((h) =>
+          h.depth === 2 ? (
+            <li class="rail-part">
+              {h.label && <span class="rail-num">{h.label}</span>}
+              {h.text}
+            </li>
+          ) : (
+            <li>
+              <a href={`#${h.id}`}>
+                {h.label && <span class="rail-num">{h.label}</span>}
+                {h.text}
+              </a>
+            </li>
+          )
+        )}
+      </ol>
+    </nav>
+
+    <main>
+      <header class="masthead">
+        <p class="eyebrow"><a href={genreHref}>{genre}</a></p>
+        <h1>{title}</h1>
+        <p class="standfirst" set:html={standfirst} />
+        {facts.length > 0 && (
+          <dl class="facts">
+            {facts.map((f) => (
+              <div>
+                <dt>{f.label}</dt>
+                <dd>{f.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </header>
+
+      <article class="prose">
+        <slot />
+      </article>
+    </main>
+
+  </div>
+</Base>

@@ -1,0 +1,39 @@
+---
+// WRITING 一覧の中身（ジャンルタブ＋記事リスト）。
+// /writing/（全件）と /writing/[genre]/（ジャンル別）の両方から使う。
+const { posts, genres, activeGenre } = Astro.props;
+
+const base = import.meta.env.BASE_URL;
+const path = (...parts) => [base, ...parts, ''].join('/').replace(/\/{2,}/g, '/');
+const allHref = path('writing');
+const genreHref = (g) => path('writing', g);
+---
+<div class="tabs" role="tablist">
+  {activeGenre === undefined
+    ? <span class="is-current" aria-current="page">すべて</span>
+    : <a href={allHref}>すべて</a>}
+  {genres.map((g) => (
+    activeGenre === g
+      ? <span class="is-current" aria-current="page">{g}</span>
+      : <a href={genreHref(g)}>{g}</a>
+  ))}
+</div>
+
+{posts.length > 0 ? (
+  <ul class="index-list">
+    {posts.map((p) => (
+      <li>
+        <a href={p.href}>{p.title}</a>
+        <div class="meta">
+          {p.dateLabel} ・{' '}
+          {p.genre === activeGenre
+            ? <span class="is-current">{p.genre}</span>
+            : <a href={genreHref(p.genre)}>{p.genre}</a>}
+        </div>
+        <p class="desc" set:html={p.standfirst} />
+      </li>
+    ))}
+  </ul>
+) : (
+  <p class="desc">この分類の記事はまだありません。</p>
+)}

@@ -1,0 +1,27 @@
+---
+import Base from '../../layouts/Base.astro';
+import WorksTable from '../../components/WorksTable.astro';
+import { getWorks, getTypes } from '../../lib/works.mjs';
+
+export async function getStaticPaths() {
+  const works = await getWorks();
+  const types = getTypes(works);
+  return types.map((type) => ({ params: { type }, props: { type } }));
+}
+
+const { type } = Astro.props;
+const allWorks = await getWorks();
+const types = getTypes(allWorks);
+const works = allWorks.filter((w) => w.type === type);
+---
+<Base title={`${type} — 成果物`} description={`「${type}」に分類した成果物の一覧。`}>
+  <div class="page">
+    <main>
+      <header class="masthead">
+        <p class="eyebrow">Works</p>
+        <h1>{type}</h1>
+      </header>
+      <WorksTable works={works} types={types} activeType={type} />
+    </main>
+  </div>
+</Base>

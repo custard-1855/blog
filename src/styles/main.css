@@ -1,0 +1,892 @@
+/* ==========================================================
+   技術記事のためのデザインシステム
+
+   生成り紙 + インクブラック + 琥珀のアクセント。
+   目次レール・節番号・コードラベルはモノスペースで統一し、
+   本文は日本語の可読性を優先した字送りにしてある。
+
+   構成:
+     1. トークン（色・字の大きさ）
+     2. 骨格（3 カラムのシェル）
+     3. 目次レール
+     4. 表題部
+     5. 見出し・本文
+     6. サイドノート
+     7. 数式
+     8. コード・注記・表・図
+     9. 単一カラムのページ（TOP / WRITING / WORKS / About）
+     10. サイトナビ・テーマ切替
+   ========================================================== */
+
+/* ---------- 1. トークン ---------- */
+
+:root {
+  --paper:      #F7F6F1;
+  --surface:    #FFFFFF;
+  --surface-2:  #F1EFE7;
+  --ink:        #16191D;
+  --ink-soft:   #3D423F;
+  --muted:      #6E6C63;
+  --rule:       #DFDBCF;
+  --rule-soft:  #EAE7DD;
+  --accent:     #A2701A;
+  --accent-ink: #7C540F;
+  --mark:       rgba(214, 158, 30, .30);
+  --steel:      #33608E;
+  --code-bg:    #15181C;
+  --code-ink:   #DDE2E4;
+  --code-dim:   #7F8C93;
+
+  /* 字の大きさ。基準を 17px 相当に上げ、広い画面では 18px まで伸ばす。
+     全段が同じ比で動くので、本文だけ大きくなって崩れることがない。 */
+  --step--1: clamp(.875rem,  .845rem + .13vw, .9375rem);
+  --step-0:  clamp(1.0625rem, 1.02rem + .2vw, 1.125rem);
+  --step-1:  clamp(1.25rem,  1.19rem + .26vw, 1.3125rem);
+  --step-2:  clamp(1.5rem,   1.4rem  + .44vw, 1.6875rem);
+  --step-3:  clamp(2rem,     1.83rem + .74vw, 2.375rem);
+  --step-4:  clamp(2.5rem,   2.13rem + 1.6vw, 3.25rem);
+
+  /* 行長。日本語でおよそ 38 字/行になる幅 */
+  --measure: 38rem;
+
+  /* 琥珀色のラベル類（eyebrow・節番号・式番号・注記の見出しなど）の大きさ。
+     --label-scale を上げると、これらだけがまとめて大きくなる。
+     本文の大きさは --step-0 側で別に決まるので、互いに干渉しない。 */
+  --label-scale: 1.15;
+  --label-lg: calc(.875rem  * var(--label-scale));  /* eyebrow・メタ情報・式番号 */
+  --label-sm: calc(.6875rem * var(--label-scale));  /* 注記の小見出し */
+
+  /* 数式の大きさ（本文に対する倍率）。
+     インラインは行送りへの影響があるので控えめ、表示数式は大きめ。 */
+  --math-inline:  1.1em;
+  --math-display: 1.5em;
+
+  /* 章番号・節番号は、それぞれの見出しと同じ大きさにしてある。
+     小さく従属させたいときは var(--label-lg) に戻す。 */
+  --chapter-num-size: var(--step-3);
+  --section-num-size: var(--step-2);
+
+  /* 3 カラムの寸法。
+     13.5 + 3.5 + 40 + 3.5 + 12.5 = 73rem、左右の余白 2.5rem ずつで 78rem。
+     .shell の max-width と 3 カラムの分岐点はこの合計に合わせてある。 */
+  --rail-w:   13.5rem;
+  --main-w:   40rem;
+  --note-w:   12.5rem;
+  --col-gap:  3.5rem;
+
+  --sans: "IBM Plex Sans JP", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+  /* 記事タイトルと章見出しだけに使う明朝。IBM Plex には和文明朝が無いため、
+     ここだけ別ファミリーを足して明朝×ゴシックの対比を作る。 */
+  --serif: "Zen Old Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:      #14161A;
+    --surface:    #1A1D22;
+    --surface-2:  #21252B;
+    --ink:        #E9E5DB;
+    --ink-soft:   #C6C2B7;
+    --muted:      #97938A;
+    --rule:       #2E333B;
+    --rule-soft:  #23272E;
+    --accent:     #E0A83E;
+    --accent-ink: #EFC372;
+    --mark:       rgba(224, 168, 62, .22);
+    --steel:      #86AEDA;
+    --code-bg:    #0F1216;
+    --code-dim:   #6F7B82;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper:      #14161A;
+  --surface:    #1A1D22;
+  --surface-2:  #21252B;
+  --ink:        #E9E5DB;
+  --ink-soft:   #C6C2B7;
+  --muted:      #97938A;
+  --rule:       #2E333B;
+  --rule-soft:  #23272E;
+  --accent:     #E0A83E;
+  --accent-ink: #EFC372;
+  --mark:       rgba(224, 168, 62, .22);
+  --steel:      #86AEDA;
+  --code-bg:    #0F1216;
+  --code-dim:   #6F7B82;
+}
+
+/* ---------- 2. 骨格 ---------- */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--step-0);
+  line-height: 1.85;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+/* 中くらいの画面: 目次レール + 本文の 2 カラム */
+@media (min-width: 62rem) {
+  .shell {
+    grid-template-columns: var(--rail-w) minmax(0, 1fr);
+    column-gap: var(--col-gap);
+    padding-inline: 2.5rem;
+  }
+}
+
+/* 広い画面: 右にサイドノート用の余白を確保して 3 カラム。
+   3 列目は場所を空けるためだけの列で、中身は入らない。
+   サイドノートは本文から float で溢れ出してここに乗る。 */
+@media (min-width: 80rem) {
+  .shell {
+    grid-template-columns: var(--rail-w) minmax(0, var(--main-w)) var(--note-w);
+    justify-content: center;
+  }
+}
+
+main {
+  min-width: 0;
+  max-width: var(--main-w);
+}
+
+/* ---------- 3. 目次レール ---------- */
+
+.rail { display: none; }
+
+@media (min-width: 62rem) {
+  .rail {
+    display: block;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow-y: auto;
+    padding: 4.5rem 0 3rem;
+    font-family: var(--mono);
+    font-size: .8125rem;
+    line-height: 1.65;
+  }
+  .rail ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+  }
+  .rail .rail-part {
+    margin-top: 1.1rem;
+    color: var(--accent);
+    letter-spacing: .06em;
+  }
+  .rail .rail-part:first-child { margin-top: 0; }
+  .rail a {
+    color: var(--muted);
+    text-decoration: none;
+    display: block;
+    padding: .05rem 0;
+  }
+  .rail a:hover,
+  .rail a:focus-visible { color: var(--ink); }
+  .rail a[aria-current="true"] { color: var(--ink); }
+  /* 目次の番号。本文の見出しと同じ番号が付く */
+  .rail .rail-num { margin-right: .5em; }
+  .rail .rail-part .rail-num { color: var(--accent); }
+  .rail a:hover .rail-num { color: var(--ink); }
+}
+
+/* ---------- 4. 表題部 ---------- */
+
+.masthead {
+  padding: 5rem 0 3rem;
+  border-bottom: 1px solid var(--rule);
+}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: var(--label-lg);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 1.25rem;
+}
+/* 記事詳細の eyebrow はジャンルへのリンクにもなる。色はそのまま、
+   下線だけでリンクだとわかるようにする。 */
+.eyebrow a {
+  color: inherit;
+  text-decoration: none;
+}
+.eyebrow a:hover,
+.eyebrow a:focus-visible {
+  text-decoration: underline;
+}
+h1 {
+  font-family: var(--serif);
+  font-size: var(--step-4);
+  line-height: 1.18;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  margin: 0 0 1.25rem;
+  text-wrap: balance;
+}
+.standfirst {
+  font-size: var(--step-1);
+  line-height: 1.75;
+  color: var(--ink-soft);
+  margin: 0 0 2rem;
+  max-width: var(--measure);
+}
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.75rem;
+  font-family: var(--mono);
+  font-size: var(--label-lg);
+  color: var(--muted);
+  margin: 0;
+}
+.facts div { display: flex; gap: .5rem; }
+.facts dt { color: var(--accent); }
+.facts dd { margin: 0; }
+
+/* ---------- 5. 見出し・本文 ---------- */
+
+.prose > h2 {
+  font-family: var(--serif);
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: -.005em;
+  line-height: 1.25;
+  margin: 5.5rem 0 2.5rem;
+  padding-bottom: .75rem;
+  border-bottom: 2px solid var(--ink);
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.prose > h2 .n {
+  font-family: var(--mono);
+  font-size: var(--chapter-num-size);
+  font-weight: 600;
+  /* 大きい字では字間を詰める。小さいラベルの .1em のままだと緩む */
+  letter-spacing: .01em;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.prose > h3 {
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -.01em;
+  margin: 3.25rem 0 1rem;
+  /* 番号と見出しを 1 行に並べる。折り返しても番号は先頭に残る */
+  display: flex;
+  align-items: baseline;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+.prose > h3 .n {
+  font-family: var(--mono);
+  font-size: var(--section-num-size);
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+
+.prose h4 {
+  font-size: var(--step-0);
+  font-weight: 600;
+  margin: 2rem 0 .5rem;
+  display: flex;
+  align-items: baseline;
+  gap: .6rem;
+  flex-wrap: wrap;
+}
+.prose h4 .n {
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+
+.prose p,
+.prose ul,
+.prose ol { max-width: var(--measure); }
+.prose p { margin: 0 0 1.15rem; }
+.prose ul,
+.prose ol { margin: 0 0 1.15rem; padding-left: 1.35rem; }
+.prose li { margin-bottom: .4rem; }
+.prose li::marker { color: var(--accent); }
+
+a {
+  color: var(--steel);
+  text-decoration-thickness: 1px;
+  text-underline-offset: .2em;
+}
+a:focus-visible,
+.rail a:focus-visible,
+.sn-ref:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+strong { font-weight: 600; }
+/* em は斜体ではなくハイライト。日本語に斜体が無いため */
+.prose em {
+  font-style: normal;
+  background: var(--mark);
+  padding: 0 .15em;
+}
+
+.prose :not(pre) > code {
+  font-family: var(--mono);
+  font-size: .875em;
+  background: var(--surface-2);
+  border: 1px solid var(--rule-soft);
+  border-radius: 3px;
+  padding: .1em .35em;
+  word-break: break-word;
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 3.5rem 0;
+  max-width: var(--measure);
+}
+
+/* ---------- 6. サイドノート ---------- */
+
+/* 本文中の参照番号。上付きの小さな琥珀色の数字 */
+.sn-ref {
+  font-family: var(--mono);
+  font-size: calc(.6875em * var(--label-scale));
+  font-weight: 500;
+  color: var(--accent);
+  vertical-align: super;
+  line-height: 0;
+  cursor: pointer;
+  padding: 0 .15em;
+}
+.sn-ref:hover { color: var(--accent-ink); }
+
+/* 開閉用のチェックボックス。
+   display:none にするとキーボードで到達できなくなるので、
+   場所を取らないだけの状態にして残しておく。 */
+.sn-check {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+/* キーボードでフォーカスしたときに、対応する番号を光らせる */
+.sn-check:focus-visible + .sn-ref {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.sidenote {
+  font-size: var(--step--1);
+  line-height: 1.7;
+  color: var(--muted);
+}
+.sidenote .sn-num {
+  font-family: var(--mono);
+  color: var(--accent);
+  margin-right: .4em;
+}
+/* 複数段落の脚注は、段落のあいだに軽い空きを入れる */
+.sidenote .sn-break {
+  display: block;
+  height: .6em;
+}
+.sidenote code {
+  font-size: .95em;
+}
+
+/* 広い画面: 右の余白へ浮かせる。
+   clear: right があるので、注が続いても互いに重ならず縦に積まれる。 */
+@media (min-width: 80rem) {
+  .sidenote {
+    float: right;
+    clear: right;
+    width: var(--note-w);
+    margin-right: calc(-1 * (var(--note-w) + var(--col-gap)));
+    margin-bottom: 1.2rem;
+    text-align: left;
+  }
+}
+
+/* 狭い画面: 既定では畳んでおき、番号を押すと開く */
+@media (max-width: 79.99rem) {
+  .sidenote {
+    display: none;
+    margin: .9rem 0 1.2rem;
+    padding: .8rem 1rem;
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 3px 3px 0;
+    max-width: var(--measure);
+  }
+  .sn-check:checked ~ .sidenote { display: block; }
+  .sn-ref { text-decoration: underline dotted; text-underline-offset: .25em; }
+}
+
+/* ---------- 7. 数式 ---------- */
+
+/* 表示数式。式番号を右端に置き、数式本体は中央寄せのまま横スクロールさせる */
+.equation {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  max-width: var(--measure);
+  scroll-margin-top: 2rem;
+}
+.equation-body {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: .25rem 0;
+}
+.equation .eq-num {
+  font-family: var(--mono);
+  font-size: var(--label-lg);
+  color: var(--accent);
+  white-space: nowrap;
+}
+/* 参照リンクが指した式を一瞬だけ目立たせる */
+.equation:target {
+  background: var(--mark);
+  border-radius: 3px;
+}
+
+/* 本文から式を指す [](#eq-xxx) */
+.eq-ref {
+  font-family: var(--mono);
+  font-size: .9em;
+  color: var(--steel);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+/* 数式の大きさ。
+   インラインと表示数式で適正が違うので分けてある。
+   インラインを上げすぎると、分数や添字が行を突き上げて
+   本文の行送りが乱れる。表示数式は独立した行なので余裕がある。 */
+.prose .katex { font-size: var(--math-inline); }
+.prose .katex-display > .katex { font-size: var(--math-display); }
+/* 上下の行を押し広げないよう、インライン数式だけ行間を詰める */
+.prose p .katex { line-height: 1.2; }
+.prose .katex-display { margin: 0; }
+
+/* ---------- 8. コード・注記・表・図 ---------- */
+
+/* Shiki が出力する pre。ラベルを付けたいときは下の .code で包む */
+.prose pre {
+  margin: 1.5rem 0 1.75rem;
+  padding: 1rem 1.15rem 1.15rem;
+  background: var(--code-bg) !important;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: .875rem;
+  line-height: 1.7;
+}
+.prose pre code {
+  font-family: var(--mono);
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* ファイル名ラベル付きのコードブロック。
+   Markdown では ```py title="rag.py" と書けば下の .code-label が付く */
+.prose figure.code-figure { margin: 1.5rem 0 1.75rem; }
+.prose figure.code-figure pre { margin: 0; border-radius: 0 0 4px 4px; border-top: 0; }
+.prose figure.code-figure figcaption {
+  font-family: var(--mono);
+  font-size: .6875rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--code-dim);
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  padding: .7rem 1.15rem .2rem;
+  margin: 0;
+}
+
+/* 注記。blockquote をそのまま使えるようにしてある */
+.prose blockquote,
+.prose .note {
+  margin: 1.75rem 0;
+  padding: 1.1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 3px 3px 0;
+  max-width: var(--measure);
+}
+.prose blockquote > :last-child,
+.prose .note > :last-child { margin-bottom: 0; }
+.note-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: var(--label-sm);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  margin-bottom: .4rem;
+}
+
+/* 表 */
+.prose table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--step--1);
+  background: var(--surface);
+  margin: 1.5rem 0 2rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.prose th,
+.prose td {
+  text-align: left;
+  padding: .7rem .9rem;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+  line-height: 1.65;
+}
+.prose thead th {
+  font-family: var(--mono);
+  font-size: .6875rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--rule);
+  font-weight: 500;
+}
+.prose tbody tr:last-child td { border-bottom: 0; }
+
+/* 図 */
+.prose figure:not(.code-figure) { margin: 2.5rem 0; max-width: 100%; }
+.prose figure .fig-frame {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1.25rem;
+}
+.prose figure svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  color: var(--ink);
+  /* 図の中の文字も本文と同じ書体・大きさを既定にする。
+     要素ごとに font-family を書かなくてよくなる。 */
+  font-family: var(--sans);
+  font-size: 13.5px;
+}
+
+/* --- 図を書くときのユーティリティ ---
+   属性を毎回並べる代わりに、class を付けるだけで済ませる。
+   色はすべて currentColor 経由なので、親に .dg-accent を付けると
+   その中身がまとめて琥珀色に変わる。 */
+.prose figure svg text { fill: currentColor; }
+.prose figure svg .dg-box {                 /* 箱 */
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+.prose figure svg .dg-box.is-strong { stroke-width: 2.25; }
+.prose figure svg .dg-line {                /* 線・矢印の軸 */
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+.prose figure svg .dg-fill { fill: currentColor; }  /* 矢尻など塗る要素 */
+.prose figure svg .dg-mono { font-family: var(--mono); font-size: 12px; }
+.prose figure svg .dg-dim  { opacity: .62; }        /* 見出しや補助的な文字 */
+.prose figure svg .dg-accent { color: var(--accent); }
+.prose figure:not(.code-figure) figcaption {
+  font-size: var(--step--1);
+  color: var(--muted);
+  margin-top: .85rem;
+  max-width: var(--measure);
+  line-height: 1.7;
+}
+.prose figure img { border-radius: 4px; }
+
+/* ---------- フッタ ---------- */
+
+.article-footer {
+  margin-top: 5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--rule);
+  font-size: var(--step--1);
+  color: var(--muted);
+  max-width: var(--measure);
+}
+
+/* ---------- 記事一覧（トップページ） ---------- */
+
+.index-list { list-style: none; margin: 0; padding: 0; }
+.index-list li {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.index-list a {
+  font-size: var(--step-1);
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+.index-list a:hover { color: var(--accent-ink); text-decoration: underline; }
+.index-list .meta {
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--muted);
+  margin-top: .35rem;
+}
+/* ジャンル（技術・学び・思考）へのリンク。日付と並ぶ小さな文字のまま、
+   下線と色の変化だけでリンクだとわかるようにする。 */
+.index-list .meta a {
+  font: inherit;
+  color: inherit;
+  text-decoration: none;
+}
+.index-list .meta a:hover,
+.index-list .meta a:focus-visible {
+  color: var(--accent-ink);
+  text-decoration: underline;
+}
+.index-list .desc {
+  color: var(--ink-soft);
+  margin: .5rem 0 0;
+  max-width: var(--measure);
+}
+
+/* ---------- 9. 単一カラムのページ（TOP / WRITING / WORKS / About） ---------- */
+
+/* 記事詳細の .shell（目次レール込みの3カラム）とは別に、
+   単一カラムのページはこちらを使う。読み幅は本文カラムと揃えてある。 */
+.page {
+  max-width: calc(var(--main-w) + 2 * 2.5rem);
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+@media (min-width: 62rem) {
+  .page { padding-inline: 2.5rem; }
+}
+
+.site-title-bar {
+  text-align: center;
+  padding: 2rem 1.5rem 1.75rem;
+}
+.site-title {
+  display: inline-block;
+  position: relative;
+  font-family: var(--serif);
+  font-size: var(--step-2);
+  font-weight: 600;
+  margin: 0;
+  padding-bottom: 1.25rem;
+}
+/* サイト名は TOP への導線も兼ねる。ホバーで色がにじみ、字間がわずかに緩み、
+   下の罫線が伸びて色も変わる（汀に潮が満ちるイメージ。1+2+3+6 案の組み合わせ）。
+   色は accent-ink（他のホバー箇所と同じ、リンク=琥珀色の慣用色）を流用している。 */
+.site-title a {
+  color: inherit;
+  text-decoration: none;
+  letter-spacing: 0;
+  transition: color .25s ease, letter-spacing .3s ease;
+}
+.site-title a:hover,
+.site-title a:focus-visible {
+  color: var(--accent-ink);
+  letter-spacing: .06em;
+}
+/* サイト名の下の罫線。.site-title-bar 全幅ではなく、文字の下だけの短い線にする。
+   ホバーで伸びて色も変わる。 */
+.site-title::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2.5rem;
+  height: 1px;
+  background: var(--rule);
+  transition: width .35s ease, background-color .3s ease;
+}
+.site-title:has(a:hover)::after,
+.site-title:has(a:focus-visible)::after {
+  width: 5rem;
+  background: var(--accent-ink);
+}
+
+.top-latest .index-list { margin-top: 1.5rem; }
+.top-more {
+  margin: 1.5rem 0 0;
+  font-family: var(--mono);
+  font-size: var(--label-lg);
+  letter-spacing: .06em;
+}
+.top-more a { color: var(--accent-ink); }
+
+/* WRITING / WORKS のジャンル・種別タブ */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 .25rem;
+  border-bottom: 1px solid var(--rule);
+  margin: 0 0 1.5rem;
+}
+.tabs a,
+.tabs .is-current {
+  padding: 0 .75rem .6rem;
+  margin-bottom: -1px;
+  font-size: var(--step--1);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.tabs a { color: var(--muted); }
+.tabs a:first-child,
+.tabs .is-current:first-child { padding-left: 0; }
+.tabs a:hover,
+.tabs a:focus-visible { color: var(--ink); }
+/* 今見ているタブはリンクにしない（クリックしても意味がないため） */
+.tabs .is-current {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+  cursor: default;
+}
+
+/* About */
+.about-section { margin-top: 3rem; }
+.about-section:first-of-type { margin-top: 3.5rem; }
+.about-career {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+}
+.about-career li {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  padding: .9rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.about-career li:last-child { border-bottom: 0; }
+.about-career-period {
+  flex: none;
+  width: 4.5rem;
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+.about-career-org {
+  font-weight: 600;
+  margin: 0 0 .25rem;
+}
+.about-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.about-skills li {
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  padding: .3rem .65rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--ink-soft);
+}
+
+/* ---------- 10. サイトナビ・テーマ切替 ---------- */
+
+.site-nav {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 2.5rem;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .75rem 2rem;
+}
+@media (min-width: 62rem) {
+  .site-nav { padding-inline: 2.5rem; }
+}
+.site-nav-links,
+.site-nav-social,
+.site-nav-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1.1rem;
+}
+.site-nav-right { gap: 1.5rem; }
+.site-nav a,
+.site-nav .is-current,
+.theme-toggle {
+  font-family: var(--mono);
+  font-size: var(--label-lg);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.site-nav a,
+.theme-toggle { color: var(--muted); cursor: pointer; }
+.site-nav a:hover,
+.site-nav a:focus-visible,
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  color: var(--ink);
+}
+/* 今いるページへのリンクはクリックできないようにしてある */
+.site-nav .is-current { color: var(--ink); cursor: default; }
+
+/* ---------- 印刷 ---------- */
+
+@media print {
+  .rail { display: none; }
+  .sidenote { display: block; float: none; width: auto; margin: .8rem 0; }
+  .prose pre { border: 1px solid #ccc; }
+  .site-nav { display: none; }
+}
