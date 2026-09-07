@@ -47,6 +47,19 @@ npm run preview  # ビルド結果を確認
 記事は `src/content/posts/` に `.md` を置くだけ。ファイル名が URL になる
 （`sample.md` → `/posts/sample/`）。
 
+## どこを編集すればいいか
+
+| 内容 | 編集場所 |
+|---|---|
+| 記事本文 | `src/content/posts/*.md`（front matter は下の「記法」を参照） |
+| About ページ | `src/pages/about.astro`。コンテンツコレクションではなく手書きの1ページなので、ファイル内の `NAME` / `BIO` / `CAREER` / `SKILLS` を直接書き換える |
+| サイト名（ヘッダーの表題） | `src/lib/site.mjs` の `SITE_TITLE` |
+| WORKS 一覧 | `src/content/works.json`。1エントリ = `{ id, year, type, title, url }` |
+| 配色・字の大きさ | `src/styles/main.css`（詳細は下の「配色と字の大きさを変える」） |
+
+編集したら `npm run dev` でプレビューし、公開するときは `main` に push するだけでよい
+（`.github/workflows/deploy.yml` が自動でビルド・デプロイする）。
+
 ## 記法
 
 ### front matter
