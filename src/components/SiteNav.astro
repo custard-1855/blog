@@ -15,6 +15,9 @@ const social = [
   { label: 'MAIL', href: 'mailto:s1f102201278@iniad.jp', external: false },
 ];
 
+// ビルド時点の年を使う。静的サイトなので再ビルドのたびに更新される。
+const year = new Date().getFullYear();
+
 // 今いるページに対応するリンクはクリックできないようにする。
 // astro build ではルート(index)ページだけ末尾スラッシュが落ちるため、そろえてから比べる。
 const currentPath = Astro.url.pathname.endsWith('/')
@@ -43,4 +46,5 @@ const currentPath = Astro.url.pathname.endsWith('/')
     </nav>
     <ThemeToggle />
   </div>
+  <p class="site-nav-copyright">© {year} custard-1855</p>
 </footer>
