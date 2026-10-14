@@ -3,12 +3,24 @@ import Base from '../layouts/Base.astro';
 
 // TODO: すべて実際の内容に書き換える
 const NAME = '竹本 志恩';
-const BIO = '';
-const CAREER = [
-  { period: '2025 —', org: '東洋大学大学院 情報連携学科 情報連携学専攻', desc: '川原研にて自律ネットワークに関する研究を検討中。' },
-  { period: '2022 — 2025', org: '東洋大学 情報連携学科 情報連携学部', desc: '川原研に配属。音による行動認識を検討。' },
+// BIO は名前の下のリード文と meta description を兼ねるので、120字以内に収める
+const BIO =
+  '東洋大学大学院 INIAD の修士課程に在籍しています。' +
+  '機械学習と自律システムに興味があり、研究のかたわらメタ認知や自己管理についても学んでいます。';
+// INTRO は本文の段落（1要素 = 1段落）。途中で改行するときは + でつなぐ
+const INTRO = [
+  '書く・読む・考えることが好きです。' +
+  '静かな雨や夜、光の作り出す陰影も好きで、見ていると不思議と満たされます。',
+  '研究のスキルを身につけるのと並行して、マインドフルネスなどの習慣化にB4の頃から取り組んでいます。' +
+  '2026年4月からはコミュニケーションも意識していて、' +
+  '学内での交流や IEEE Student Branch の活動に参加しています。',
 ];
-// const SKILLS = ['', 'スキル2', 'スキル3'];
+const CAREER = [
+  { period: '2026/4 —', org: '東洋大学大学院 情報連携学科 情報連携学専攻', desc: '川原研にて自律ネットワークに関する研究を検討中。' },
+  { period: '2026/4 —', org: 'Toyo Univ. Student Branch Secretary', desc: '東洋大SBに所属し、他SBのイベントに積極的に参加。運営の一員としても精力的に活動。' },
+  { period: '2022/4 — 2026/3', org: '東洋大学 情報連携学科 情報連携学部', desc: '川原研に配属。音による行動認識を検討。' },
+];
+const SKILLS = ['Python'];
 ---
 <Base title="About" description={BIO}>
   <div class="page">
@@ -17,6 +29,12 @@ const CAREER = [
         <h1>{NAME}</h1>
         <p class="standfirst">{BIO}</p>
       </header>
+
+      {INTRO.length > 0 && (
+        <section class="about-section about-intro">
+          {INTRO.map((p) => <p>{p}</p>)}
+        </section>
+      )}
 
       <section class="about-section">
         <p class="eyebrow">Career</p>
