@@ -1,16 +1,16 @@
 [
   {
-    "id": "sample-oss",
+    "id": "ms-community",
     "year": 2026,
     "type": "開発",
-    "title": "サンプル項目 — 実際の成果物に置き換える",
-    "url": "https://github.com/USERNAME/REPO"
+    "title": "Magic Survival 非公式wiki",
+    "url": "https://custard-1855.github.io/ms-wiki/"
   },
   {
-    "id": "sample-writing",
+    "id": "paper",
     "year": 2025,
     "type": "執筆",
-    "title": "サンプル項目 — 発表・執筆・研究など好きな種別を入れてよい",
-    "url": "https://example.com"
+    "title": "NS研究会 実環境を見据えた音による行動認識モデルの精度向上に関する一検討",
+    "url": "https://ken.ieice.org/ken/paper/20260304PcSg/, https://www.docswell.com/s/custard-1855/5MQXRE-sed_4_har"
   }
 ]
